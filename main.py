@@ -3,10 +3,13 @@ import os
 # 僅本地測試時載入 .env 檔案
 if os.getenv("APPWRITE_LOCAL_TEST") == "1":
     from dotenv import load_dotenv
+
     load_dotenv()
 
 from appwrite.client import Client
 from appwrite.services.databases import Databases
+from appwrite.query import Query
+
 
 # 建立 Appwrite Client
 def create_appwrite_client():
@@ -16,8 +19,10 @@ def create_appwrite_client():
     client.set_key(os.getenv("APPWRITE_API_KEY"))
     return client
 
+
 client = create_appwrite_client()
 databases = Databases(client)
+
 
 # 查詢資料函式
 def get_subscription_documents():
@@ -25,10 +30,9 @@ def get_subscription_documents():
     collection_id = os.getenv("APPWRITE_COLLECTION_ID_SUBSCRIPTION")
     print(f"DEBUG: database_id={database_id}, collection_id={collection_id}")
     return databases.list_documents(
-        database_id=database_id,
-        collection_id=collection_id,
-        queries=[]
+        database_id=database_id, collection_id=collection_id, queries=[]
     )
+
 
 # === Appwrite Function 入口 ===
 def main(context):
@@ -38,11 +42,13 @@ def main(context):
     except Exception as e:
         return context.res.json({"error": str(e)})
 
+
 # === FastAPI 本地測試模式 ===
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
 app = FastAPI()
+
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -64,11 +70,15 @@ async def root():
       </head>
       <body>
         <h1>Hello, FastAPI & Appwrite!</h1>
-        <nav><a href="/subscription">Go to subscription</a></nav>
+        <nav>
+          <a href="/subscription">Go to subscription</a>
+          <a href="/subscription/appwrite">Go to subscription about appwrite</a>
+        </nav>
         <footer>Powered by FastAPI & Appwrite</footer>
       </body>
     </html>
     """
+
 
 @app.get("/subscription")
 async def subscription():
@@ -77,7 +87,24 @@ async def subscription():
     except Exception as e:
         return {"error": str(e)}
 
+
+@app.get("/subscription/{name}")
+async def subscription_by_name(name: str):
+    try:
+        database_id = os.getenv("APPWRITE_DATABASE_ID")
+        collection_id = os.getenv("APPWRITE_COLLECTION_ID_SUBSCRIPTION")
+        result = databases.list_documents(
+            database_id=database_id,
+            collection_id=collection_id,
+            queries=[Query.equal("name", name)],
+        )
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
+
 # 若以命令執行 python main.py，則執行測試伺服器
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
