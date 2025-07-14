@@ -77,8 +77,9 @@ async def root():
       <body>
         <h1>Hello, FastAPI & Appwrite!</h1>
         <nav>
-          <a href="/subscription">Go to subscription</a>
-          <a href="/subscription/appwrite">Go to subscription about appwrite</a>
+          <a href="/subscription">subscription</a>
+          <a href="/subscription/appwrite">subscription about appwrite</a>
+          <a href="/docs">API docs</a>
         </nav>
         <footer>Powered by FastAPI & Appwrite</footer>
       </body>
