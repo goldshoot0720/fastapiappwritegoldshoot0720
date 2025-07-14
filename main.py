@@ -80,6 +80,7 @@ async def root():
           <a href="/subscription">subscription</a>
           <a href="/subscription/appwrite">subscription about appwrite</a>
           <a href="/docs">API docs</a>
+          <a href="/redoc">API redoc</a>
         </nav>
         <footer>Powered by FastAPI & Appwrite</footer>
       </body>
