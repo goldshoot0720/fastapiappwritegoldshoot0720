@@ -3,12 +3,15 @@ import os
 # 僅本地測試時載入 .env 檔案
 if os.getenv("APPWRITE_LOCAL_TEST") == "1":
     from dotenv import load_dotenv
-
     load_dotenv()
 
 from appwrite.client import Client
 from appwrite.services.databases import Databases
 from appwrite.query import Query
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 
 
 # 建立 Appwrite Client
@@ -34,20 +37,23 @@ def get_subscription_documents():
     )
 
 
-# === Appwrite Function 入口 ===
-def main(context):
-    try:
-        result = get_subscription_documents()
-        return context.res.json(result)
-    except Exception as e:
-        return context.res.json({"error": str(e)})
-
-
-# === FastAPI 本地測試模式 ===
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
-
+# FastAPI app 初始化
 app = FastAPI()
+
+# CORS 設定
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")  # 例如 "https://railway.com,https://你的前端網域"
+if allowed_origins == ["*"]:
+    allow_origins = ["*"]
+else:
+    allow_origins = [origin.strip() for origin in allowed_origins]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allow_origins,  # 允許的來源清單
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -103,8 +109,8 @@ async def subscription_by_name(name: str):
         return {"error": str(e)}
 
 
-# 若以命令執行 python main.py，則執行測試伺服器
+# 本地測試執行用
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
